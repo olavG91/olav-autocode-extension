@@ -1,8 +1,8 @@
 {
-  "name": "olav-autocode",
+  "name": "olav-autocode-extension",
   "displayName": "Olav Autocode Extension",
   "description": "Streams code from Anthropic to editor.",
-  "publisher": "Simon Gustafsson",
+  "publisher": "simongustafsson",
   "icon": "icon.png",
   "version": "0.0.1",
   "engines": {
@@ -12,7 +12,7 @@
     "Other"
   ],
   "activationEvents": [],
-  "main": "extension.js",
+  "main": "dist/extension.js",
   "contributes": {
     "configuration": {
       "title": "Opus Autocode Extension Settings",
@@ -60,7 +60,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "package": "vsce package",
-    "publish": "vsce publish"
+    "publish": "vsce publish",
+    "build": "webpack --mode production"
   },
   "repository": {
     "type": "git",
@@ -75,5 +76,9 @@
     "anthropic",
     "code generation",
     "AI"
-  ]
+  ],
+  "devDependencies": {
+    "webpack": "^5.0.0",
+    "webpack-cli": "^4.0.0"
+  }
 }

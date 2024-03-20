@@ -1,0 +1,9 @@
+node_modules/**
+src/**
+.vscode/**
+.git/**
+.github/**
+.gitignore
+.vscodeignore
+package-lock.json
+webpack.config.js

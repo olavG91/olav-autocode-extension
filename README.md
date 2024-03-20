@@ -1,4 +1,4 @@
-# Anthropic API VSCode Extension
+# Olav Autocode Extension
 
 This VSCode extension allows users to directly utilize the Anthropic API within VSCode, enabling the enhancement or generation of code snippets based on user inputs.
 
@@ -11,12 +11,12 @@ This VSCode extension allows users to directly utilize the Anthropic API within 
 ## Requirements
 
 - An active Anthropic API key.
-- VSCode version 1.XX or newer.
+- VSCode version 1.75.0 or newer.
 
 ## Setup
 
-1. **Install the Extension**: Search for the 'Anthropic API Extension' in the VSCode Extensions Marketplace and install it.
-2. **Configure API Key**: Go to `File > Preferences > Settings > Extensions > Anthropic API Extension` and set your `anthropic.apiKey`.
+1. **Install the Extension**: Search for the 'Olav Autocode Extension' in the VSCode Extensions Marketplace and install it.
+2. **Configure API Key**: Go to `File > Preferences > Settings > Extensions > Olav Autocode Extension` and set your `anthropic.apiKey`.
 3. **Optional Configurations**: Similarly, configure the `model`, `maxTokens`, and `temperature` settings as needed.
 
 ## Usage
@@ -25,6 +25,15 @@ This VSCode extension allows users to directly utilize the Anthropic API within 
 2. Highlight a code snippet you want to improve or place the cursor where you want to generate new code.
 3. Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on Mac) and type `Open Prompt`, then press Enter.
 4. Follow the prompt in the input box to generate or improve your code.
+
+## Building from Source
+
+If you wish to build the extension from source:
+
+1. Clone the repository to your local machine.
+2. Run `npm install` to install dependencies.
+3. Run `npm run build` to bundle the extension using webpack.
+4. Use `vsce package` to create a VSIX file that can be installed into VSCode.
 
 ## Support
 
