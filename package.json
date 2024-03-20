@@ -1,0 +1,79 @@
+{
+  "name": "olav-autocode",
+  "displayName": "Olav Autocode Extension",
+  "description": "Streams code from Anthropic to editor.",
+  "publisher": "Simon Gustafsson",
+  "icon": "icon.png",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "Opus Autocode Extension Settings",
+      "properties": {
+        "anthropic.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API Key for Anthropic"
+        },
+        "anthropic.model": {
+          "type": "string",
+          "default": "claude-3-opus-20240229",
+          "description": "Model for Anthropic"
+        },
+        "anthropic.maxTokens": {
+          "type": "number",
+          "default": 4096,
+          "description": "Max tokens for code generation"
+        },
+        "anthropic.temperature": {
+          "type": "number",
+          "default": 0.5,
+          "description": "Temperature for code generation"
+        }
+      }
+    },
+    "keybindings": [
+      {
+        "command": "extension.openPrompt",
+        "key": "ctrl+shift+k",
+        "mac": "cmd+shift+k",
+        "when": "editorTextFocus"
+      }
+    ],
+    "commands": [
+      {
+        "command": "extension.openPrompt",
+        "title": "Open Prompt"
+      }
+    ]
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.19.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "package": "vsce package",
+    "publish": "vsce publish"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/olavG91/olav-autocode-extension"
+  },
+  "bugs": {
+    "url": "https://github.com/olavG91/olav-autocode-extension/issues"
+  },
+  "homepage": "https://github.com/olavG91/olav-autocode-extension#readme",
+  "license": "MIT",
+  "keywords": [
+    "anthropic",
+    "code generation",
+    "AI"
+  ]
+}
