@@ -18,8 +18,8 @@ async function activate(context) {
         let textActive = selectedText ? true : false;
 
         const prompt = await vscode.window.showInputBox({
-            prompt: selectedText ? 'Enter your prompt to improve the selected code' : 'Enter your prompt',
-            placeHolder: selectedText ? 'Write a prompt to generate code with Opus to improve the selected code.' : 'Write a prompt to generate code with Opus.',
+            prompt: selectedText ? 'Enter your prompt to change the selected code' : 'Enter your prompt',
+            placeHolder: selectedText ? 'Write a prompt to change the selected code.' : 'Write a prompt to generate code.',
             validateInput: (value) => {
                 if (!value) {
                     return 'Prompt cannot be empty';
