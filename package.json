@@ -4,7 +4,7 @@
   "description": "Streams code from Anthropic to editor.",
   "publisher": "simongustafsson",
   "icon": "icon.png",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "engines": {
     "vscode": "^1.75.0"
   },
@@ -27,15 +27,20 @@
           "default": "claude-3-opus-20240229",
           "description": "Model for Anthropic"
         },
-        "anthropic.maxTokens": {
+        "anthropic.maxOutputTokens": {
           "type": "number",
           "default": 4096,
-          "description": "Max tokens for code generation"
+          "description": "Max tokens for output code generation"
         },
         "anthropic.temperature": {
           "type": "number",
           "default": 0.5,
           "description": "Temperature for code generation"
+        },
+        "anthropic.maxInputTokens": {
+          "type": "number",
+          "default": 500,
+          "description": "Max size for input code (Can be expensive)"
         }
       }
     },
@@ -50,7 +55,7 @@
     "commands": [
       {
         "command": "extension.openPrompt",
-        "title": "Open Prompt"
+        "title": "Open Olav Autocode"
       }
     ]
   },

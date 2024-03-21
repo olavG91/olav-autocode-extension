@@ -7,6 +7,10 @@ This VSCode extension allows users to directly utilize the Anthropic API within 
 - **Prompt Generation**: Input your code or prompts to generate or improve code snippets directly in your active editor.
 - **API Integration**: Seamlessly integrates the Anthropic API for real-time code generation and enhancement.
 - **Custom Configurations**: Configure your Anthropic API key, model preferences, max tokens, and temperature directly through VSCode settings for personalized use.
+- **Quick Commands**: Use `CTRL+SHIFT+K` on Windows, or `CMD+SHIFT+K` on Mac to quickly open Olav Autocode. This can be done with or without selected text.
+    - If text is selected, it allows for editing existing code with a prompt.
+    - Without text selection, it creates a new code snippet.
+    - You can also configure the total number of characters to be used as input for the AI.
 
 ## Requirements
 

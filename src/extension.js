@@ -48,7 +48,6 @@ async function activate(context) {
                 if (textActive) {
                     editBuilder.delete(selection);
                     textActive = false;
-                    console.log("Deleting text");
                 }
                 const currentPosition = editor.selection.start;
                 editBuilder.insert(currentPosition, newText);
@@ -69,16 +68,18 @@ async function activate(context) {
             });
         };
 
+        const maxInputTokens = vscode.workspace.getConfiguration().get('anthropic.maxInputTokens');
+        
         const getPreviousCode = (editor, position) => {
             const range = new vscode.Range(new vscode.Position(0, 0), position);
             const text = editor.document.getText(range);
-            return text.slice(Math.max(text.length - 500, 0));
+            return text.slice(Math.max(text.length - (maxInputTokens / 2), 0));
         };
 
         const getSubsequentCode = (editor, position) => {
             const range = new vscode.Range(position, new vscode.Position(editor.document.lineCount, 0));
             const text = editor.document.getText(range);
-            return text.slice(0, 500);
+            return text.slice(0, (maxInputTokens / 2));
         };
 
         const previousCode = getPreviousCode(editor, startPosition);
@@ -107,14 +108,14 @@ async function activate(context) {
             Only answer with code without any comments or explanations. The code should not have any characters for displaying that it is code.`;
 
         const model = vscode.workspace.getConfiguration().get('anthropic.model');
-        const maxTokens = vscode.workspace.getConfiguration().get('anthropic.maxTokens');
+        const maxOutputTokens = vscode.workspace.getConfiguration().get('anthropic.maxOutputTokens');
         const temperature = vscode.workspace.getConfiguration().get('anthropic.temperature');
 
         anthropic.messages.stream({
             system: systemPrompt,
             messages: [{ role: 'user', content: prompt }],
             model: model,
-            max_tokens: maxTokens,
+            max_tokens: maxOutputTokens,
             temperature: temperature,
         }).on('text', (text) => {
             if (text) {
