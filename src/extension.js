@@ -14,8 +14,8 @@ async function activate(context) {
         const editor = vscode.window.activeTextEditor;
         if (!editor) return;
 
-        const selection = editor.selection;
-        const selectedText = editor.document.getText(selection);
+        let selection = editor.selection;
+        let selectedText = editor.document.getText(selection);
         let startPosition = selection.isEmpty ? editor.selection.active : selection.start;
         let textActive = !selection.isEmpty;
         let originalContent = editor.document.getText();
@@ -37,7 +37,7 @@ async function activate(context) {
                         { label: 'Rerun', description: 'Rerun the prompt', iconPath: new vscode.ThemeIcon('refresh') },
                         { label: 'Reset', description: 'Reset to original state', iconPath: new vscode.ThemeIcon('close') },
                     ];
-                    const selection = await vscode.window.showQuickPick(items, {
+                    const option = await vscode.window.showQuickPick(items, {
                         placeHolder: 'Select an action',
                         matchOnDescription: true,
                         matchOnDetail: true,
@@ -45,12 +45,11 @@ async function activate(context) {
                     });
 
                     if (selection) {
-                        if (selection.label === 'Rerun') {
+                        if (option.label === 'Rerun') {
+                            vscode.window.showInformationMessage('Selected text: ' + selectedText);
                             await resetContent();
-                            queue = textActive ? [selectedText] : [originalContent];
-                            isComplete = false;
                             await response();
-                        } else if (selection.label === 'Reset') {
+                        } else if (option.label === 'Reset') {
                             await resetContent();
                         }
                     }
@@ -91,6 +90,7 @@ async function activate(context) {
                         editBuilder.replace(fullRange, originalContent);
                     }
                 });
+                editor.selection = new vscode.Selection(startPosition, startPosition);
             } catch (error) {
                 vscode.window.showErrorMessage(`Failed to reset content: ${error}`);
             }
