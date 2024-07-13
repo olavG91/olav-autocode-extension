@@ -4,7 +4,7 @@
   "description": "Streams code from Anthropic to editor.",
   "publisher": "simongustafsson",
   "icon": "icon.png",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "engines": {
     "vscode": "^1.75.0"
   },
@@ -82,10 +82,6 @@
   "keywords": [
     "anthropic",
     "ai",
-    "documentation",
-    "autocomplete",
-    "intellisense",
-    "refactor",
     "javascript",
     "python",
     "typescript",

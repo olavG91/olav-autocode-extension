@@ -1,7 +1,7 @@
 const vscode = require('vscode');
 const { Anthropic } = require('@anthropic-ai/sdk');
 const Prompts = require('./components/prompts');
-const { Input, Buttons } = require('./components/input');
+const { Input } = require('./components/input');
 
 async function activate(context) {
     let disposable = vscode.commands.registerCommand('extension.openPrompt', async () => {
@@ -17,61 +17,43 @@ async function activate(context) {
         const selection = editor.selection;
         const selectedText = editor.document.getText(selection);
         let startPosition = selection.isEmpty ? editor.selection.active : selection.start;
-        let textActive = selectedText ? true : false;
+        let textActive = !selection.isEmpty;
         let originalContent = editor.document.getText();
 
         const prompt = await Input(selectedText);
-
         if (!prompt) return;
 
-        const anthropic = new Anthropic({
-            apiKey: apiKey
-        });
+        const anthropic = new Anthropic({ apiKey });
 
         let isProcessing = false;
         let queue = [];
         let isComplete = false;
 
-        const processQueue = () => {
+        const processQueue = async () => {
             if (queue.length === 0 || isProcessing) {
                 if (isComplete && queue.length === 0) {
                     const items = [
-                        { label: 'Keep', description: 'Keep the selected code as it is', iconPath: new vscode.ThemeIcon('check') },
+                        { label: 'Keep', description: 'Keep the current code', iconPath: new vscode.ThemeIcon('check') },
                         { label: 'Rerun', description: 'Rerun the prompt', iconPath: new vscode.ThemeIcon('refresh') },
-                        { label: 'Reset', description: 'Reset the selected code to its original state', iconPath: new vscode.ThemeIcon('close') },
+                        { label: 'Reset', description: 'Reset to original state', iconPath: new vscode.ThemeIcon('close') },
                     ];
-                    vscode.window.showQuickPick(items, {
+                    const selection = await vscode.window.showQuickPick(items, {
                         placeHolder: 'Select an action',
                         matchOnDescription: true,
                         matchOnDetail: true,
                         ignoreFocusOut: true,
-                    }).then(selection => {
+                    });
+
+                    if (selection) {
                         if (selection.label === 'Rerun') {
-                            if (textActive) {
-                                editor.edit(editBuilder => {
-                                    editBuilder.replace(new vscode.Range(startPosition, editor.selection.active), selectedText);
-                                });
-                            } else {
-                                editor.edit(editBuilder => {
-                                    editBuilder.replace(new vscode.Range(new vscode.Position(0, 0), editor.document.lineAt(editor.document.lineCount - 1).range.end), originalContent);
-                                });
-                            }
+                            await resetContent();
                             queue = textActive ? [selectedText] : [originalContent];
                             isComplete = false;
-                            response();
+                            await response();
+                        } else if (selection.label === 'Reset') {
+                            await resetContent();
                         }
-                        if (selection.label === 'Reset') {
-                            if (textActive) {
-                                editor.edit(editBuilder => {
-                                    editBuilder.replace(new vscode.Range(startPosition, editor.selection.active), selectedText);
-                                });
-                            } else {
-                                editor.edit(editBuilder => {
-                                    editBuilder.replace(new vscode.Range(new vscode.Position(0, 0), editor.document.lineAt(editor.document.lineCount - 1).range.end), originalContent);
-                                });
-                            }
-                        }
-                    });
+                    }
                 }
                 return;
             }
@@ -79,28 +61,39 @@ async function activate(context) {
             isProcessing = true;
             const newText = queue.shift();
 
-            editor.edit(editBuilder => {
-                if (textActive) {
-                    editBuilder.delete(selection);
-                    textActive = false;
-                }
-                const currentPosition = editor.selection.start;
-                editBuilder.insert(currentPosition, newText);
-            }).then(success => {
+            try {
+                await editor.edit(editBuilder => {
+                    if (textActive) {
+                        editBuilder.delete(selection);
+                        textActive = false;
+                    }
+                    const currentPosition = editor.selection.start;
+                    editBuilder.insert(currentPosition, newText);
+                });
                 isProcessing = false;
-                if (!success) {
-                    vscode.window.showErrorMessage('Failed to insert text.' + success);
-                } else {
-                    editor.edit(editBuilder => {
-                        editBuilder.insert(editor.selection.start);
-                    }).then(success => {
-                        if (!success) {
-                            vscode.window.showErrorMessage('Failed to insert text.' + success);
-                        }
-                        processQueue();
-                    });
-                }
-            });
+                processQueue();
+            } catch (error) {
+                vscode.window.showErrorMessage(`Failed to insert text: ${error}`);
+                isProcessing = false;
+            }
+        };
+
+        const resetContent = async () => {
+            try {
+                await editor.edit(editBuilder => {
+                    if (textActive) {
+                        editBuilder.replace(new vscode.Range(startPosition, editor.selection.active), selectedText);
+                    } else {
+                        const fullRange = new vscode.Range(
+                            editor.document.positionAt(0),
+                            editor.document.positionAt(editor.document.getText().length)
+                        );
+                        editBuilder.replace(fullRange, originalContent);
+                    }
+                });
+            } catch (error) {
+                vscode.window.showErrorMessage(`Failed to reset content: ${error}`);
+            }
         };
 
         const systemPrompt = Prompts({ editor, startPosition, selectedText });
@@ -109,30 +102,32 @@ async function activate(context) {
         const maxOutputTokens = vscode.workspace.getConfiguration().get('anthropic.maxOutputTokens');
         const temperature = vscode.workspace.getConfiguration().get('anthropic.temperature');
 
-        const response = () => {
-            anthropic.messages.stream({
-                system: systemPrompt,
-                messages: [
-                    { role: 'user', content: prompt }
-                ],
-                model: model,
-                max_tokens: maxOutputTokens,
-                temperature: temperature,
-            }).on('text', (text) => {
-                if (text) {
-                    queue.push(text);
-                    processQueue();
+        const response = async () => {
+            try {
+                const stream = await anthropic.messages.stream({
+                    system: systemPrompt,
+                    messages: [{ role: 'user', content: prompt }],
+                    model,
+                    max_tokens: maxOutputTokens,
+                    temperature,
+                });
+
+                for await (const chunk of stream) {
+                    if (chunk.type === 'content_block_delta' && chunk.delta.text) {
+                        queue.push(chunk.delta.text);
+                        processQueue();
+                    }
                 }
-            }).on('end', () => {
+
                 isComplete = true;
                 processQueue();
-            }).on('error', (error) => {
+            } catch (error) {
                 console.error('Error interacting with Anthropic AI:', error);
-                vscode.window.showErrorMessage('Error interacting with Anthropic AI.' + error);
-            });
-        }
+                vscode.window.showErrorMessage(`Error interacting with Anthropic AI: ${error}`);
+            }
+        };
 
-        response();
+        await response();
     });
 
     context.subscriptions.push(disposable);
