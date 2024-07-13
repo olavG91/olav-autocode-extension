@@ -1,4 +1,4 @@
-# Olav Autocode Extension
+np# Olav Autocode Extension
 
 This VSCode extension allows users to directly utilize the Anthropic API within VSCode, enabling the enhancement or generation of code snippets based on user inputs.
 

@@ -1,5 +1,7 @@
 const vscode = require('vscode');
 const { Anthropic } = require('@anthropic-ai/sdk');
+const Prompts = require('./components/prompts');
+const Input = require('./components/input');
 
 async function activate(context) {
     let disposable = vscode.commands.registerCommand('extension.openPrompt', async () => {
@@ -17,17 +19,7 @@ async function activate(context) {
         let startPosition = selection.isEmpty ? editor.selection.active : selection.start;
         let textActive = selectedText ? true : false;
 
-        const prompt = await vscode.window.showInputBox({
-            prompt: selectedText ? 'Enter your prompt to change the selected code' : 'Enter your prompt',
-            placeHolder: selectedText ? 'Write a prompt to change the selected code.' : 'Write a prompt to generate code.',
-            validateInput: (value) => {
-                if (!value) {
-                    return 'Prompt cannot be empty';
-                }
-                return null;
-            },
-        });
-
+        const prompt = await Input(selectedText);
         if (!prompt) return;
 
         const anthropic = new Anthropic({
@@ -68,44 +60,7 @@ async function activate(context) {
             });
         };
 
-        const maxInputTokens = vscode.workspace.getConfiguration().get('anthropic.maxInputTokens');
-        
-        const getPreviousCode = (editor, position) => {
-            const range = new vscode.Range(new vscode.Position(0, 0), position);
-            const text = editor.document.getText(range);
-            return text.slice(Math.max(text.length - (maxInputTokens / 2), 0));
-        };
-
-        const getSubsequentCode = (editor, position) => {
-            const range = new vscode.Range(position, new vscode.Position(editor.document.lineCount, 0));
-            const text = editor.document.getText(range);
-            return text.slice(0, (maxInputTokens / 2));
-        };
-
-        const previousCode = getPreviousCode(editor, startPosition);
-        const subsequentCode = getSubsequentCode(editor, startPosition);
-
-        const systemPrompt = selectedText
-            ? `Your task is to change the given code snippet based on the prompt.
-
-            Here is some information about the project:
-            Current file: ${editor.document.fileName}
-            Current language: ${editor.document.languageId}
-            ${previousCode ? `Here is some code from the document before cursor position: ${previousCode}` : ''}
-            ${subsequentCode ? `Here is some code from the document after cursor position: ${subsequentCode}` : ''}
-            
-            Here is the current code that you should change according to the prompt: ${selectedText}
-
-            Only answer with the changed code without any comments or explanations. The code should be directly usable.`
-            : `Your task is to write code based on the prompt.
-
-            Here is some information about the project:
-            Current file: ${editor.document.fileName}
-            Current language: ${editor.document.languageId}
-            ${previousCode ? `Here is some code from the document before cursor position: ${previousCode}` : ''}
-            ${subsequentCode ? `Here is some code from the document after cursor position: ${subsequentCode}` : ''}
-            
-            Only answer with code without any comments or explanations. The code should not have any characters for displaying that it is code.`;
+        const systemPrompt = Prompts({ editor, startPosition, selectedText });
 
         const model = vscode.workspace.getConfiguration().get('anthropic.model');
         const maxOutputTokens = vscode.workspace.getConfiguration().get('anthropic.maxOutputTokens');
@@ -113,7 +68,9 @@ async function activate(context) {
 
         anthropic.messages.stream({
             system: systemPrompt,
-            messages: [{ role: 'user', content: prompt }],
+            messages: [
+                { role: 'user', content: prompt }
+            ],
             model: model,
             max_tokens: maxOutputTokens,
             temperature: temperature,

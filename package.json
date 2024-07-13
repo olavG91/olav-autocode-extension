@@ -9,13 +9,15 @@
     "vscode": "^1.75.0"
   },
   "categories": [
-    "Other"
+    "AI",
+    "Chat",
+    "Programming Languages"
   ],
   "activationEvents": [],
-  "main": "dist/extension.js",
+  "main": "src/extension.js",
   "contributes": {
     "configuration": {
-      "title": "Opus Autocode Extension Settings",
+      "title": "Olav Autocode Extension",
       "properties": {
         "anthropic.apiKey": {
           "type": "string",
@@ -24,13 +26,13 @@
         },
         "anthropic.model": {
           "type": "string",
-          "default": "claude-3-opus-20240229",
+          "default": "claude-3-5-sonnet-20240620",
           "description": "Model for Anthropic"
         },
         "anthropic.maxOutputTokens": {
           "type": "number",
           "default": 4096,
-          "description": "Max tokens for output code generation"
+          "description": "Max tokens for output"
         },
         "anthropic.temperature": {
           "type": "number",
@@ -79,8 +81,22 @@
   "license": "MIT",
   "keywords": [
     "anthropic",
-    "code generation",
-    "AI"
+    "ai",
+    "documentation",
+    "autocomplete",
+    "intellisense",
+    "refactor",
+    "javascript",
+    "python",
+    "typescript",
+    "php",
+    "go",
+    "golang",
+    "ruby",
+    "c++",
+    "c#",
+    "java",
+    "co-pilot"
   ],
   "devDependencies": {
     "webpack": "^5.0.0",
