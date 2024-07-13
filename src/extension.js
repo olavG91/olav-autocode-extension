@@ -19,6 +19,7 @@ async function activate(context) {
         let startPosition = selection.isEmpty ? editor.selection.active : selection.start;
         let textActive = !selection.isEmpty;
         let originalContent = editor.document.getText();
+        let lastGeneratedRange = null;
 
         const prompt = await Input(selectedText);
         if (!prompt) return;
@@ -28,10 +29,17 @@ async function activate(context) {
         let isProcessing = false;
         let queue = [];
         let isComplete = false;
+        let newTextLength = 0;
 
         const processQueue = async () => {
             if (queue.length === 0 || isProcessing) {
                 if (isComplete && queue.length === 0) {
+                    if (textActive) {
+                        const endPosition = editor.document.positionAt(editor.document.offsetAt(startPosition) + newTextLength);
+                        lastGeneratedRange = new vscode.Range(startPosition, endPosition);
+                        editor.selection = new vscode.Selection(startPosition, endPosition);
+                    }
+
                     const items = [
                         { label: 'Keep', description: 'Keep the current code', iconPath: new vscode.ThemeIcon('check') },
                         { label: 'Rerun', description: 'Rerun the prompt', iconPath: new vscode.ThemeIcon('refresh') },
@@ -44,11 +52,9 @@ async function activate(context) {
                         ignoreFocusOut: true,
                     });
 
-                    if (selection) {
+                    if (option) {
                         if (option.label === 'Rerun') {
-                            vscode.window.showInformationMessage('Selected text: ' + selectedText);
-                            await resetContent();
-                            await response();
+                            await rerun();
                         } else if (option.label === 'Reset') {
                             await resetContent();
                         }
@@ -69,6 +75,7 @@ async function activate(context) {
                     const currentPosition = editor.selection.start;
                     editBuilder.insert(currentPosition, newText);
                 });
+                newTextLength += newText.length;
                 isProcessing = false;
                 processQueue();
             } catch (error) {
@@ -80,8 +87,8 @@ async function activate(context) {
         const resetContent = async () => {
             try {
                 await editor.edit(editBuilder => {
-                    if (textActive) {
-                        editBuilder.replace(new vscode.Range(startPosition, editor.selection.active), selectedText);
+                    if (lastGeneratedRange) {
+                        editBuilder.replace(lastGeneratedRange, selectedText);
                     } else {
                         const fullRange = new vscode.Range(
                             editor.document.positionAt(0),
@@ -91,9 +98,27 @@ async function activate(context) {
                     }
                 });
                 editor.selection = new vscode.Selection(startPosition, startPosition);
+                lastGeneratedRange = null;
             } catch (error) {
                 vscode.window.showErrorMessage(`Failed to reset content: ${error}`);
             }
+        };
+
+        const rerun = async () => {
+            if (lastGeneratedRange) {
+                await editor.edit(editBuilder => {
+                    editBuilder.delete(lastGeneratedRange);
+                });
+                startPosition = lastGeneratedRange.start;
+                editor.selection = new vscode.Selection(startPosition, startPosition);
+            } else {
+                await resetContent();
+            }
+            textActive = true;
+            newTextLength = 0;
+            isComplete = false;
+            queue = [];
+            await response();
         };
 
         const systemPrompt = Prompts({ editor, startPosition, selectedText });
@@ -104,6 +129,7 @@ async function activate(context) {
 
         const response = async () => {
             try {
+                newTextLength = 0;  // Reset newTextLength before each response
                 const stream = await anthropic.messages.stream({
                     system: systemPrompt,
                     messages: [{ role: 'user', content: prompt }],

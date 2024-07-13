@@ -14,7 +14,7 @@
     "Programming Languages"
   ],
   "activationEvents": [],
-  "main": "src/extension.js",
+  "main": "dist/extension.js",
   "contributes": {
     "configuration": {
       "title": "Olav Autocode Extension",
