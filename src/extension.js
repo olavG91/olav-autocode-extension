@@ -1,7 +1,7 @@
 const vscode = require('vscode');
 const { Anthropic } = require('@anthropic-ai/sdk');
 const Prompts = require('./components/prompts');
-const Input = require('./components/input');
+const { Input, Buttons } = require('./components/input');
 
 async function activate(context) {
     let disposable = vscode.commands.registerCommand('extension.openPrompt', async () => {
@@ -18,8 +18,10 @@ async function activate(context) {
         const selectedText = editor.document.getText(selection);
         let startPosition = selection.isEmpty ? editor.selection.active : selection.start;
         let textActive = selectedText ? true : false;
+        let originalContent = editor.document.getText();
 
         const prompt = await Input(selectedText);
+
         if (!prompt) return;
 
         const anthropic = new Anthropic({
@@ -28,11 +30,52 @@ async function activate(context) {
 
         let isProcessing = false;
         let queue = [];
+        let isComplete = false;
 
         const processQueue = () => {
             if (queue.length === 0 || isProcessing) {
+                if (isComplete && queue.length === 0) {
+                    const items = [
+                        { label: 'Keep', description: 'Keep the selected code as it is', iconPath: new vscode.ThemeIcon('check') },
+                        { label: 'Rerun', description: 'Rerun the prompt', iconPath: new vscode.ThemeIcon('refresh') },
+                        { label: 'Reset', description: 'Reset the selected code to its original state', iconPath: new vscode.ThemeIcon('close') },
+                    ];
+                    vscode.window.showQuickPick(items, {
+                        placeHolder: 'Select an action',
+                        matchOnDescription: true,
+                        matchOnDetail: true,
+                        ignoreFocusOut: true,
+                    }).then(selection => {
+                        if (selection.label === 'Rerun') {
+                            if (textActive) {
+                                editor.edit(editBuilder => {
+                                    editBuilder.replace(new vscode.Range(startPosition, editor.selection.active), selectedText);
+                                });
+                            } else {
+                                editor.edit(editBuilder => {
+                                    editBuilder.replace(new vscode.Range(new vscode.Position(0, 0), editor.document.lineAt(editor.document.lineCount - 1).range.end), originalContent);
+                                });
+                            }
+                            queue = textActive ? [selectedText] : [originalContent];
+                            isComplete = false;
+                            response();
+                        }
+                        if (selection.label === 'Reset') {
+                            if (textActive) {
+                                editor.edit(editBuilder => {
+                                    editBuilder.replace(new vscode.Range(startPosition, editor.selection.active), selectedText);
+                                });
+                            } else {
+                                editor.edit(editBuilder => {
+                                    editBuilder.replace(new vscode.Range(new vscode.Position(0, 0), editor.document.lineAt(editor.document.lineCount - 1).range.end), originalContent);
+                                });
+                            }
+                        }
+                    });
+                }
                 return;
             }
+
             isProcessing = true;
             const newText = queue.shift();
 
@@ -66,23 +109,30 @@ async function activate(context) {
         const maxOutputTokens = vscode.workspace.getConfiguration().get('anthropic.maxOutputTokens');
         const temperature = vscode.workspace.getConfiguration().get('anthropic.temperature');
 
-        anthropic.messages.stream({
-            system: systemPrompt,
-            messages: [
-                { role: 'user', content: prompt }
-            ],
-            model: model,
-            max_tokens: maxOutputTokens,
-            temperature: temperature,
-        }).on('text', (text) => {
-            if (text) {
-                queue.push(text);
+        const response = () => {
+            anthropic.messages.stream({
+                system: systemPrompt,
+                messages: [
+                    { role: 'user', content: prompt }
+                ],
+                model: model,
+                max_tokens: maxOutputTokens,
+                temperature: temperature,
+            }).on('text', (text) => {
+                if (text) {
+                    queue.push(text);
+                    processQueue();
+                }
+            }).on('end', () => {
+                isComplete = true;
                 processQueue();
-            }
-        }).on('error', (error) => {
-            console.error('Error interacting with Anthropic AI:', error);
-            vscode.window.showErrorMessage('Error interacting with Anthropic AI.');
-        });
+            }).on('error', (error) => {
+                console.error('Error interacting with Anthropic AI:', error);
+                vscode.window.showErrorMessage('Error interacting with Anthropic AI.' + error);
+            });
+        }
+
+        response();
     });
 
     context.subscriptions.push(disposable);

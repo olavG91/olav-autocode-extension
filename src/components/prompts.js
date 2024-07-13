@@ -18,7 +18,7 @@ const Prompts = ({ editor, startPosition, selectedText }) => {
     const previousCode = getPreviousCode(editor, startPosition);
     const subsequentCode = getSubsequentCode(editor, startPosition);
 
-    const userPrompt = `Your task is to write code based on the prompt.
+    const prompt = `Your task is to write code based on the prompt.
 
     Here is some information about the project:
     Current file: ${editor.document.fileName}
@@ -28,7 +28,7 @@ const Prompts = ({ editor, startPosition, selectedText }) => {
     
     Only answer with code without any comments or explanations. The code should not have any characters for displaying that it is code.`;
 
-    const userPromptSelected = `Your task is to change the given code snippet based on the prompt.
+    const promptSelected = `Your task is to change the given code snippet based on the prompt.
 
         Here is some information about the project:
         Current file: ${editor.document.fileName}
@@ -40,7 +40,7 @@ const Prompts = ({ editor, startPosition, selectedText }) => {
 
         Only answer with the changed code without any comments or explanations. The code should be directly usable.`;
 
-    return { userPrompt, userPromptSelected };
+    return selectedText ? promptSelected : prompt;
 };
 
 module.exports = Prompts;
