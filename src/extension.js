@@ -24,8 +24,6 @@ async function activate(context) {
         const prompt = await Input(selectedText);
         if (!prompt) return;
 
-        vscode.window.showInformationMessage(JSON.stringify(prompt));
-
         const anthropic = new Anthropic({ apiKey });
 
         let isProcessing = false;
@@ -134,7 +132,6 @@ async function activate(context) {
                 vscode.workspace.fs.readFile(vscode.Uri.file(image.url)).then(
                     (data) => {
                         const base64 = Buffer.from(data).toString('base64');
-                        vscode.window.showInformationMessage(`Base64: ${base64}`);
                         resolve(base64);
                     },
                     (error) => {
@@ -144,8 +141,6 @@ async function activate(context) {
             });
         }
 
-        vscode.window.showInformationMessage(await base64Image(prompt.image));
-
         const response = async () => {
             try {
                 newTextLength = 0;  // Reset newTextLength before each response
@@ -154,7 +149,7 @@ async function activate(context) {
                     messages: [
                         {
                             role: 'user',
-                            content: [
+                            content: prompt?.image?.url ? [
                                 {
                                     type: "image",
                                     source: {
@@ -165,7 +160,12 @@ async function activate(context) {
                                 },
                                 {
                                     type: "text",
-                                    text: prompt.content ? prompt.content : "Create code based on the image.",
+                                    text: prompt.content || "Create code based on the image.",
+                                }
+                            ] : [
+                                {
+                                    type: "text",
+                                    text: prompt.content,
                                 }
                             ]
                         }
