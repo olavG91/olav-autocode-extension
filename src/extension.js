@@ -24,6 +24,8 @@ async function activate(context) {
         const prompt = await Input(selectedText);
         if (!prompt) return;
 
+        vscode.window.showInformationMessage(JSON.stringify(prompt));
+
         const anthropic = new Anthropic({ apiKey });
 
         let isProcessing = false;
@@ -127,12 +129,47 @@ async function activate(context) {
         const maxOutputTokens = vscode.workspace.getConfiguration().get('anthropic.maxOutputTokens');
         const temperature = vscode.workspace.getConfiguration().get('anthropic.temperature');
 
+        const base64Image = (image) => {
+            return new Promise((resolve, reject) => {
+                vscode.workspace.fs.readFile(vscode.Uri.file(image.url)).then(
+                    (data) => {
+                        const base64 = Buffer.from(data).toString('base64');
+                        vscode.window.showInformationMessage(`Base64: ${base64}`);
+                        resolve(base64);
+                    },
+                    (error) => {
+                        reject(new Error(`Failed to load image: ${error.message}`));
+                    }
+                );
+            });
+        }
+
+        vscode.window.showInformationMessage(await base64Image(prompt.image));
+
         const response = async () => {
             try {
                 newTextLength = 0;  // Reset newTextLength before each response
                 const stream = await anthropic.messages.stream({
                     system: systemPrompt,
-                    messages: [{ role: 'user', content: prompt }],
+                    messages: [
+                        {
+                            role: 'user',
+                            content: [
+                                {
+                                    type: "image",
+                                    source: {
+                                        type: "base64",
+                                        media_type: `image/${prompt.image.format}`,
+                                        data: await base64Image(prompt.image),
+                                    },
+                                },
+                                {
+                                    type: "text",
+                                    text: prompt.content ? prompt.content : "Create code based on the image.",
+                                }
+                            ]
+                        }
+                    ],
                     model,
                     max_tokens: maxOutputTokens,
                     temperature,
