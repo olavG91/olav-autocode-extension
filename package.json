@@ -4,7 +4,7 @@
   "description": "Streams code from Anthropic to editor.",
   "publisher": "simongustafsson",
   "icon": "icon.png",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "engines": {
     "vscode": "^1.75.0"
   },
@@ -14,7 +14,7 @@
     "Programming Languages"
   ],
   "activationEvents": [],
-  "main": "src/extension.js",
+  "main": "dist/extension.js",
   "contributes": {
     "configuration": {
       "title": "Olav Autocode Extension",

@@ -131,7 +131,7 @@ async function activate(context) {
             newTextLength = 0;
             isComplete = false;
             queue = [];
-            await response();
+            await response(getUserPrompt);
         };
 
         const systemPrompt = await Prompts({ editor, startPosition, selectedText });

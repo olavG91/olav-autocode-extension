@@ -26,7 +26,7 @@ const Prompts = async ({ editor, startPosition, selectedText }) => {
     Here is some information about the project:
     Current file: ${editor.document.fileName}
     Current language: ${editor.document.languageId}
-    Imports and modules: ${JSON.stringify(imports)}
+    ${imports.length > 0 ? `Imports and modules: ${JSON.stringify(imports)}` : ''}
     ${previousCode ? `Here is some code from the document before cursor position: ${previousCode}` : ''}
     ${subsequentCode ? `Here is some code from the document after cursor position: ${subsequentCode}` : ''}
     
@@ -37,7 +37,7 @@ const Prompts = async ({ editor, startPosition, selectedText }) => {
     Here is some information about the project:
     Current file: ${editor.document.fileName}
     Current language: ${editor.document.languageId}
-    Imports and modules: ${JSON.stringify(imports)}
+    ${imports.length > 0 ? `Imports and modules: ${JSON.stringify(imports)}` : ''}
     ${previousCode ? `Here is some code from the document before cursor position: ${previousCode}` : ''}
     ${subsequentCode ? `Here is some code from the document after cursor position: ${subsequentCode}` : ''}
     
