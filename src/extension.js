@@ -35,6 +35,8 @@ async function activate(context) {
         const prompt = await Input(selectedText);
         if (!prompt) return;
 
+        let getUserPrompt = await userPrompt(prompt);
+
         const anthropic = new Anthropic({ apiKey });
 
         let isProcessing = false;
@@ -134,16 +136,6 @@ async function activate(context) {
 
         const systemPrompt = await Prompts({ editor, startPosition, selectedText });
 
-        function insertData(editor, data) {
-            editor.edit(editBuilder => {
-                const document = editor.document;
-                const lastLine = document.lineAt(document.lineCount - 1);
-                const endPosition = lastLine.range.end;
-
-                editBuilder.insert(endPosition, `\n\nData:\n${data}`);
-            });
-        }
-
         const response = async (messages) => {
             try {
                 newTextLength = 0;
@@ -170,7 +162,7 @@ async function activate(context) {
             }
         };
 
-        await response(userPrompt(prompt));
+        await response(getUserPrompt);
     });
 
     context.subscriptions.push(disposable);

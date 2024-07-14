@@ -75,4 +75,4 @@ const userPrompt = async (prompt) => {
     return userMessage;
 }
 
-module.exports = { Prompts, userPrompt, toolPrompt };
+module.exports = { Prompts, userPrompt };

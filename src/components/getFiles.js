@@ -73,16 +73,6 @@ const getFiles = async () => {
         }
     }
 
-    function insertData(editor, data) {
-        editor.edit(editBuilder => {
-            const document = editor.document;
-            const lastLine = document.lineAt(document.lineCount - 1);
-            const endPosition = lastLine.range.end;
-
-            editBuilder.insert(endPosition, `\n\nData:\n${data}`);
-        });
-    }
-
     searchInFiles(fileStructure);
 
     const matchingFilesFiltered = matchingFiles.slice(0, 10);
