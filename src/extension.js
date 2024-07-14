@@ -1,18 +1,30 @@
 const vscode = require('vscode');
+const { configureSettings } = require('./components/settings');
 const { Anthropic } = require('@anthropic-ai/sdk');
 const Prompts = require('./components/prompts');
 const { Input } = require('./components/input');
+const getFiles = require('./components/getFiles');
+const weatherToolSchema = require('./schema');
 
 async function activate(context) {
     let disposable = vscode.commands.registerCommand('extension.openPrompt', async () => {
-        const apiKey = vscode.workspace.getConfiguration().get('anthropic.apiKey');
-        if (!apiKey) {
-            vscode.window.showErrorMessage('Anthropic API key is not configured.');
-            return;
+        const apiKey = vscode.workspace.getConfiguration().get('ai.apiKey');
+        const model = vscode.workspace.getConfiguration().get('ai.model');
+        const maxOutputTokens = vscode.workspace.getConfiguration().get('ai.maxOutputTokens');
+        const temperature = vscode.workspace.getConfiguration().get('ai.temperature');
+
+        if (!apiKey || !model || !maxOutputTokens || !temperature) {
+            const configured = await configureSettings();
+            if (!configured) {
+                vscode.window.showErrorMessage('Configuration is not complete. Please try again or configure the extension settings manually.');
+                return;
+            }
         }
 
         const editor = vscode.window.activeTextEditor;
         if (!editor) return;
+
+        const files = await getFiles();
 
         let selection = editor.selection;
         let selectedText = editor.document.getText(selection);
@@ -121,11 +133,7 @@ async function activate(context) {
             await response();
         };
 
-        const systemPrompt = Prompts({ editor, startPosition, selectedText });
-
-        const model = vscode.workspace.getConfiguration().get('anthropic.model');
-        const maxOutputTokens = vscode.workspace.getConfiguration().get('anthropic.maxOutputTokens');
-        const temperature = vscode.workspace.getConfiguration().get('anthropic.temperature');
+        const systemPrompt = await Prompts({ editor, startPosition, selectedText });
 
         const base64Image = (image) => {
             return new Promise((resolve, reject) => {
@@ -143,7 +151,7 @@ async function activate(context) {
 
         const response = async () => {
             try {
-                newTextLength = 0;  // Reset newTextLength before each response
+                newTextLength = 0;
                 const stream = await anthropic.messages.stream({
                     system: systemPrompt,
                     messages: [
@@ -173,6 +181,7 @@ async function activate(context) {
                     model,
                     max_tokens: maxOutputTokens,
                     temperature,
+                    tools: [writeCodeSchema, checkFileSchema],
                 });
 
                 for await (const chunk of stream) {

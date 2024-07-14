@@ -14,32 +14,41 @@
     "Programming Languages"
   ],
   "activationEvents": [],
-  "main": "dist/extension.js",
+  "main": "src/extension.js",
   "contributes": {
     "configuration": {
       "title": "Olav Autocode Extension",
       "properties": {
-        "anthropic.apiKey": {
+        "ai.provider": {
+          "type": "string",
+          "default": "anthropic",
+          "enum": [
+            "anthropic",
+            "openai"
+          ],
+          "description": "Provider for AI"
+        },
+        "ai.apiKey": {
           "type": "string",
           "default": "",
           "description": "API Key for Anthropic"
         },
-        "anthropic.model": {
+        "ai.model": {
           "type": "string",
           "default": "claude-3-5-sonnet-20240620",
           "description": "Model for Anthropic"
         },
-        "anthropic.maxOutputTokens": {
+        "ai.maxOutputTokens": {
           "type": "number",
           "default": 4096,
           "description": "Max tokens for output"
         },
-        "anthropic.temperature": {
+        "ai.temperature": {
           "type": "number",
           "default": 0.5,
           "description": "Temperature for code generation"
         },
-        "anthropic.maxInputTokens": {
+        "ai.maxInputTokens": {
           "type": "number",
           "default": 500,
           "description": "Max size for input code (Can be expensive)"

@@ -1,6 +1,6 @@
 const vscode = require('vscode');
 
-const Prompts = ({ editor, startPosition, selectedText }) => {
+const Prompts = async ({ editor, startPosition, selectedText }) => {
     const maxInputTokens = vscode.workspace.getConfiguration().get('anthropic.maxInputTokens');
 
     const getPreviousCode = (editor, position) => {
