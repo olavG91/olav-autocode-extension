@@ -1,12 +1,12 @@
 const writeCodeSchema = {
     "name": "write_code",
-    "description": "Write code based on the given instructions",
+    "description": "Instruct other AI to write a code snippet",
     "input_schema": {
         "type": "object",
         "properties": {
-            "code": {
+            "prompt": {
                 "type": "string",
-                "description": "The code to write"
+                "description": "Short explanation about the project and the task. If there is any information about other files related to this code, it should be included here."
             },
         },
         "required": ["code"]
@@ -15,16 +15,16 @@ const writeCodeSchema = {
 
 const checkFileSchema = {
     "name": "check_file",
-    "description": "Check contents in a file to get better response",
+    "description": "Suggest a filename to check for a specific code snippet",
     "input_schema": {
         "type": "object",
         "properties": {
-            "file_path": {
+            "file_name": {
                 "type": "string",
-                "description": "The name of the file to check"
-            },
+                "description": "The name of the file to check. E.g. 'component.js'"
+            }
         },
-        "required": ["file_path"]
+        "required": ["file_name"]
     }
 }
 
