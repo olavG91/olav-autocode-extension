@@ -4,7 +4,7 @@
   "description": "Streams code from Anthropic to editor.",
   "publisher": "simongustafsson",
   "icon": "icon.png",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "engines": {
     "vscode": "^1.75.0"
   },
@@ -26,17 +26,17 @@
             "anthropic",
             "openai"
           ],
-          "description": "Provider for AI"
+          "description": "Provider"
         },
         "ai.apiKey": {
           "type": "string",
           "default": "",
-          "description": "API Key for Anthropic"
+          "description": "API Key"
         },
         "ai.model": {
           "type": "string",
           "default": "claude-3-5-sonnet-20240620",
-          "description": "Model for Anthropic"
+          "description": "Model"
         },
         "ai.maxOutputTokens": {
           "type": "number",

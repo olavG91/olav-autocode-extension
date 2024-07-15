@@ -12,7 +12,7 @@ async function activate(context) {
         const maxOutputTokens = vscode.workspace.getConfiguration().get('ai.maxOutputTokens');
         const temperature = vscode.workspace.getConfiguration().get('ai.temperature');
 
-        if (!apiKey || !model || !maxOutputTokens || !temperature) {
+        if (true) {
             const configured = await configureSettings();
             if (!configured) {
                 vscode.window.showErrorMessage('Configuration is not complete. Please try again or configure the extension settings manually.');

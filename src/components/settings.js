@@ -3,7 +3,10 @@ const vscode = require('vscode');
 async function configureSettings() {
     const config = vscode.workspace.getConfiguration('ai');
 
-    const provider = await vscode.window.showQuickPick(['Anthropic', 'OpenAI'], {
+    const provider = await vscode.window.showQuickPick([
+        { label: 'Anthropic', value: 'anthropic' },
+        { label: 'OpenAI', value: 'openai' }
+    ], {
         placeHolder: 'Select AI provider',
         ignoreFocusOut: true,
     });
@@ -11,8 +14,8 @@ async function configureSettings() {
     if (!provider) return false;
 
     const apiKey = await vscode.window.showInputBox({
-        placeHolder: `Enter your ${provider} API key`,
-        prompt: `Get your API key at https://www.${provider.toLowerCase()}.com`,
+        placeHolder: `Enter your ${provider.value} API key`,
+        prompt: `Get your API key at https://www.${provider.value.toLowerCase()}.com`,
         value: config.get('apiKey', ''),
         validateInput: (value) => {
             if (!value) {
@@ -26,7 +29,7 @@ async function configureSettings() {
     if (!apiKey) return false;
 
     let model;
-    if (provider === 'Anthropic') {
+    if (provider.value === 'anthropic') {
         model = await vscode.window.showInputBox({
             placeHolder: 'Enter the Anthropic model (default: claude-3-5-sonnet-20240620)',
             value: config.get('model', 'claude-3-5-sonnet-20240620'),
@@ -96,7 +99,7 @@ async function configureSettings() {
 
     if (!maxInputTokens) return false;
 
-    await vscode.workspace.getConfiguration().update('ai.provider', provider, vscode.ConfigurationTarget.Global);
+    await vscode.workspace.getConfiguration().update('ai.provider', provider.value, vscode.ConfigurationTarget.Global);
     await vscode.workspace.getConfiguration().update('ai.apiKey', apiKey, vscode.ConfigurationTarget.Global);
     await vscode.workspace.getConfiguration().update('ai.model', model, vscode.ConfigurationTarget.Global);
     await vscode.workspace.getConfiguration().update('ai.maxOutputTokens', parseInt(maxOutputTokens), vscode.ConfigurationTarget.Global);
