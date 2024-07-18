@@ -3,7 +3,6 @@ const { configureSettings } = require('./components/settings');
 const { Anthropic } = require('@anthropic-ai/sdk');
 const { Prompts, userPrompt } = require('./components/prompts');
 const { Input } = require('./components/input');
-const { getFiles, getImports } = require('./components/getFiles');
 
 async function activate(context) {
     let disposable = vscode.commands.registerCommand('extension.openPrompt', async () => {
@@ -22,8 +21,6 @@ async function activate(context) {
 
         const editor = vscode.window.activeTextEditor;
         if (!editor) return;
-
-        const files = await getFiles();
 
         let selection = editor.selection;
         let selectedText = editor.document.getText(selection);
