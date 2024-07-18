@@ -4,7 +4,7 @@
   "description": "Streams code from Anthropic to editor.",
   "publisher": "simongustafsson",
   "icon": "icon.png",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "engines": {
     "vscode": "^1.75.0"
   },
@@ -100,8 +100,7 @@
     "ruby",
     "c++",
     "c#",
-    "java",
-    "co-pilot"
+    "java"
   ],
   "devDependencies": {
     "webpack": "^5.0.0",
